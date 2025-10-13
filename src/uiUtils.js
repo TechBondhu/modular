@@ -1,5 +1,4 @@
 import { elements, appState } from './constants.js';
-import { sanitizeMessage } from './uiUtils.js'; // Self-import
 
 export function sanitizeMessage(message) {
     const div = document.createElement('div');
