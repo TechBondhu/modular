@@ -3,6 +3,8 @@ import { displayMessage } from './uiUtils.js';
 import { displayReview } from './reviewUtils.js'; // saveSubmission সরানো হয়েছে
 import { saveSubmission } from './submissionUtils.js'; // submissionUtils থেকে ইমপোর্ট
 import { elements } from './constants.js';
+import { saveChatHistory } from './chatHistory.js';
+
 
 // সব ফ্লো এখানে ডিফাইন করা হবে
 export const flows = {
@@ -141,16 +143,19 @@ function showReviewInterface() {
   displayReview(userData, 'left'); // প্রাথমিক রিভিউ দেখানো
 }
 
-// সরল PDF তৈরি (jsPDF ব্যবহার করে)
-function generatePDF(data) {
-  // jsPDF লাইব্রেরি লোড করতে হবে (HTML-এ <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>)
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.setFontSize(16);
-  doc.text("NID Application Form", 10, 10);
-  let y = 20;
-  Object.entries(data).forEach(([key, value], index) => {
-    doc.text(`${key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${value}`, 10, y + (index * 10));
-  });
-  doc.save('nid_application.pdf');
+function showNidReview(formData) {
+    const reviewData = {
+        নাম: formData.name || '',
+        পিতা: formData.fatherName || '',
+        মাতা: formData.motherName || '',
+        জন্ম_তারিখ: formData.birthDate || '',
+        ঠিকানা: formData.address || '',
+        মোবাইল: formData.mobile || '',
+        ছবি: formData.photoUrl || '',
+        form_type: "NID Apply"
+    };
+
+    displayMessage("নিচে আপনার দেওয়া তথ্যগুলো রিভিউ করুন 👇", "bot", "left");
+    displayReview(reviewData, "left");
+    saveChatHistory("রিভিউ প্রদর্শন করা হয়েছে", "bot", "left");
 }
