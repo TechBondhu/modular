@@ -4,7 +4,7 @@ import { displayReview } from './reviewUtils.js';
 import { saveChatHistory } from './chatHistory.js';
 
 // Groq API Key (তোমার Groq অ্যাকাউন্ট থেকে নাও এবং এখানে পেস্ট করো, বা constants.js-এ রাখো)
-const GROQ_API_KEY = 'your_groq_api_key_here'; // রিপ্লেস করো!
+const GROQ_API_KEY = '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'; // রিপ্লেস করো!
 
 // --------------------------------------
 // 🔹 ফ্লো ডিফাইন
