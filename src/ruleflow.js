@@ -129,55 +129,5 @@ export function handleFormFlow(userMessage) {
   }
 }
 
-// ✅ Review ইন্টারফেস
-function showReviewInterface() {
-  console.log("📋 Showing Review Interface...");
-  console.log("🧾 Current User Data:", userData);
 
-  if (!elements.messagesDiv) {
-    console.error("❌ messagesDiv not found!");
-    return;
-  }
-
-  displayMessage("নিচে আপনার দেওয়া তথ্যগুলো যাচাই করুন 👇", "bot", "left");
-
-  // বেসিক রিভিউ UI
-  elements.messagesDiv.innerHTML += `
-    <div class="review-container" id="reviewContainer">
-      <h3>আবেদন পর্যালোচনা</h3>
-      ${Object.entries(userData)
-        .map(
-          ([key, value]) => `
-        <div class="review-item">
-          <label>${key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}:</label>
-          <input type="text" class="review-input" value="${value}" data-key="${key}">
-        </div>`
-        )
-        .join('')}
-      <button class="confirm-btn" id="confirmBtn">কনফার্ম</button>
-      <button class="edit-btn" id="editBtn">এডিট</button>
-    </div>
-  `;
-
-  document.getElementById('editBtn')?.addEventListener('click', () => {
-    console.log("✏️ Edit mode activated");
-    document.querySelectorAll('.review-input').forEach(input => (input.disabled = false));
-    displayMessage('ডাটা এডিট করুন এবং কনফার্ম করুন।', 'bot', 'left');
-  });
-
-  document.getElementById('confirmBtn')?.addEventListener('click', () => {
-    console.log("✅ Confirm button clicked");
-    document.querySelectorAll('.review-input').forEach(input => {
-      userData[input.getAttribute('data-key')] = input.value;
-      input.disabled = true;
-    });
-    console.log("📤 Final Data Submitted:", userData);
-    displayMessage('আবেদন কনফার্ম করা হয়েছে ✅', 'bot', 'left');
-    saveSubmission(userData, 'left');
-    displayReview(userData, 'left');
-    isReviewMode = false;
-  });
-
-  // আলাদা রিভিউ কার্ডও দেখানো
-  displayReview(userData, 'left');
-}
+ 
