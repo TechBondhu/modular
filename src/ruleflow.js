@@ -101,7 +101,6 @@ export function handleFormFlow(userMessage, uploadedFile = null) {
 
   if (!activeFlow || !currentStep) {
     displayMessage("দুঃখিত, ফ্লো শুরু করুন বা সঠিক মেসেজ পাঠান।", 'bot', 'left');
-    saveChatHistory("দুঃখিত, ফ্লো শুরু করুন বা সঠিক মেসেজ পাঠান।", 'bot', 'left');
     return;
   }
 
@@ -126,8 +125,7 @@ export function handleFormFlow(userMessage, uploadedFile = null) {
         try {
           // প্রথমে OCR করে টেক্সট বের করো
           const extractedText = await performOcr(imageUrl);
-          console.log("📝 Extracted Text:", extractedText);
-
+          console.log("📄 Extracted Text:", extractedText.slice(0, 100) + "...");
           // তারপর টেক্সট থেকে তথ্য এক্সট্র্যাক্ট
           const extractedData = await extractInfoFromText(extractedText);
 
@@ -142,11 +140,9 @@ export function handleFormFlow(userMessage, uploadedFile = null) {
           saveChatHistory("✅ OCR সম্পন্ন! আপনার তথ্য অটোম্যাটিক্যালি পূরণ করা হয়েছে।", "bot", "left");
         } catch (error) {
           console.error("❌ OCR Error:", error);
-          displayMessage("OCR-এ সমস্যা হয়েছে। আপনি ম্যানুয়ালি তথ্য দিতে পারেন। দয়া করে আবার চেষ্টা করুন বা long ফর্মে যেতে 'না' বলুন।", "bot", "left");
-          saveChatHistory("OCR-এ সমস্যা হয়েছে। আপনি ম্যানুয়ালি তথ্য দিতে পারেন। দয়া করে আবার চেষ্টা করুন বা long ফর্মে যেতে 'না' বলুন।", "bot", "left");
-          currentStep = "start"; // রি-প্রম্পট করো
-          moveToNextStep();
-          return;
+          displayMessage("OCR-এ সমস্যা হয়েছে। দয়া করে আবার আপলোড করুন বা ম্যানুয়ালি তথ্য দিন।", "bot", "left");
+          saveChatHistory("OCR-এ সমস্যা হয়েছে। দয়া করে আবার আপলোড করুন বা ম্যানুয়ালি তথ্য দিন।", "bot", "left");
+          return; // এরর হলে রি-প্রম্পট বা long path-এ যাও
         }
       }
 
@@ -215,7 +211,7 @@ async function performOcr(imageBase64) {
           {
             role: 'user',
             content: [
-              { type: 'text', text: 'Extract all visible text from this image of a birth certificate or SSC marksheet accurately, preserving the structure and formatting as much as possible. Output only the extracted text without additional commentary.' },
+              { type: 'text', text: 'Extract all visible text from this image of a birth certificate or SSC marksheet accurately, preserving the structure and formatting as much as possible. Output ONLY the extracted text without any additional commentary, explanation, or formatting. Do not add "Here are the extracted fields" or any introductory text.' },
               { type: 'image_url', image_url: { url: imageBase64 } }
             ]
           }
@@ -225,11 +221,11 @@ async function performOcr(imageBase64) {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`OCR API error: ${response.status}`);
     }
 
     const data = await response.json();
-    return data.choices[0].message.content;
+    return data.choices[0].message.content.trim();
   } catch (error) {
     console.error('OCR API Error:', error);
     throw error;
@@ -252,17 +248,17 @@ async function extractInfoFromText(extractedText) {
         messages: [
           {
             role: 'user',
-            content: `You are an expert at parsing official documents like birth certificates or SSC marksheets. From the following extracted text, identify and extract the following fields exactly as they appear, without adding or assuming information. If a field is not found, return 'Not Found' for that field. **Output only a valid JSON object, enclosed in curly braces {}, with no additional text, markdown, or code fences (e.g., no ```json or other commentary).**
+            content: `You are an expert at parsing official documents like birth certificates or SSC marksheets. From the following extracted text, identify and extract the following fields exactly as they appear, without adding or assuming information. If a field is not found, output 'Not Found'.
 
 Extracted Text:
 ${extractedText}
 
-Output in JSON format:
+Output ONLY the JSON object without any additional text, explanation, or formatting:
 {
   "name": "Full name of the individual",
   "fathers_name": "Father's full name",
   "mothers_name": "Mother's full name",
-  "dob": "Date of birth",
+  "dob": "Date of birth (DD-MM-YYYY format)",
   "address": "Address"
 }`
           }
@@ -272,37 +268,25 @@ Output in JSON format:
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`Extraction API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const content = data.choices[0].message.content.trim();
-    console.log('Raw API Response:', content); // ডিবাগিংয়ের জন্য
+    let jsonString = data.choices[0].message.content.trim();
 
-    // JSON পার্স করার আগে চেক করো যে এটা বৈধ JSON কিনা
-    try {
-      return JSON.parse(content);
-    } catch (error) {
-      // যদি JSON পার্স ফেল করে, টেক্সট থেকে JSON অংশ বের করার চেষ্টা করো
-      const jsonMatch = content.match(/{[\s\S]*?}/); // আরও সুনির্দিষ্ট রেগেক্স
-      if (jsonMatch) {
-        console.log('Extracted JSON:', jsonMatch[0]);
-        return JSON.parse(jsonMatch[0]);
-      } else {
-        // ফলব্যাক: ডিফল্ট ডাটা রিটার্ন
-        console.warn('No valid JSON found, returning default data');
-        return {
-          name: 'Not Found',
-          fathers_name: 'Not Found',
-          mothers_name: 'Not Found',
-          dob: 'Not Found',
-          address: 'Not Found'
-        };
-      }
+    // JSON পার্সিং লজিক: যদি অতিরিক্ত টেক্সট থাকে, তাহলে শুধু JSON অংশ এক্সট্র্যাক্ট করো
+    const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonString = jsonMatch[0];
     }
+
+    const parsedData = JSON.parse(jsonString);
+    console.log("📊 Extracted Data:", parsedData);
+    return parsedData;
   } catch (error) {
     console.error('Extraction API Error:', error);
-    throw error;
+    // ফলব্যাক: খালি অবজেক্ট রিটার্ন
+    return { name: 'Not Found', fathers_name: 'Not Found', mothers_name: 'Not Found', dob: 'Not Found', address: 'Not Found' };
   }
 }
 
