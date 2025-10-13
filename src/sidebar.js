@@ -1,5 +1,4 @@
 import { elements } from './constants.js';
-import { toggleSidebar } from './sidebar.js'; // Self-import
 import { loadChatHistory } from './chatHistory.js';
 import { startNewChat } from './chatHistory.js';
 import { deleteChat, renameChat } from './chatHistory.js';
