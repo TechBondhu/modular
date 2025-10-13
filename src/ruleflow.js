@@ -96,8 +96,8 @@ export function handleFormFlow(userMessage, uploadedFile = null) {
 
     const reader = new FileReader();
     reader.onload = function (e) {
-      const imageUrl = e.target.result; // base64 ইমেজ
-      userData[currentStep] = imageUrl; // সঠিক কী-তে সংরক্ষণ
+      const imageUrl = e.target.result;
+      userData[currentStep] = imageUrl; // base64 হিসেবে সংরক্ষণ
 
       displayMessage("✅ ফাইল আপলোড সম্পন্ন হয়েছে!", "bot", "left");
       console.log("🖼️ Image stored in userData:", imageUrl.slice(0, 40) + "...");
@@ -192,7 +192,7 @@ function addFileUploadInput() {
 }
 
 // --------------------------------------
-// ✅ রিভিউ (reviewUtils.js সিস্টেমের সাথে সামঞ্জস্য)
+// ✅ রিভিউ (তোমার reviewUtils.js সিস্টেম ব্যবহার করে)
 // --------------------------------------
 function showNidReview(formData) {
   console.log("📋 Showing NID Review (from reviewUtils.js)");
@@ -205,8 +205,8 @@ function showNidReview(formData) {
     জন্ম_তারিখ: formData.dob || '',
     ঠিকানা: formData.address || '',
     মোবাইল: formData.nid_short_form || '',
-    ডকুমেন্ট: formData.upload_docs || '', // upload_docs থেকে ইমেজ
-    আবেদনকারীর_ছবি: formData.nid_long_form || '', // nid_long_form থেকে ইমেজ
+    ডকুমেন্ট: formData.upload_docs || '',
+    আবেদনকারীর_ছবি: formData.nid_long_form || '', // long form image
     form_type: "NID Apply"
   };
 
