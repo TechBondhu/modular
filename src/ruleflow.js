@@ -4,7 +4,7 @@ import { displayReview } from './reviewUtils.js';
 import { saveChatHistory } from './chatHistory.js';
 
 // Groq API Key (তোমার Groq অ্যাকাউন্ট থেকে নাও এবং এখানে পেস্ট করো, বা constants.js-এ রাখো)
-const GROQ_API_KEY = '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'; // রিপ্লেস করো!
+const GROQ_API_KEY = 'your_groq_api_key_here'; // রিপ্লেস করো!
 
 // --------------------------------------
 // 🔹 ফ্লো ডিফাইন
@@ -139,9 +139,11 @@ export function handleFormFlow(userMessage, uploadedFile = null) {
           saveChatHistory("✅ OCR সম্পন্ন! আপনার তথ্য অটোম্যাটিক্যালি পূরণ করা হয়েছে।", "bot", "left");
         } catch (error) {
           console.error("❌ OCR Error:", error);
-          displayMessage("OCR-এ সমস্যা হয়েছে। দয়া করে আবার আপলোড করুন বা ম্যানুয়ালি তথ্য দিন।", "bot", "left");
-          saveChatHistory("OCR-এ সমস্যা হয়েছে। দয়া করে আবার আপলোড করুন বা ম্যানুয়ালি তথ্য দিন।", "bot", "left");
-          return; // এরর হলে রি-প্রম্পট বা long path-এ যাও
+          displayMessage("OCR-এ সমস্যা হয়েছে। আপনি ম্যানুয়ালি তথ্য দিতে পারেন। দয়া করে আবার চেষ্টা করুন বা long ফর্মে যেতে 'না' বলুন।", "bot", "left");
+          saveChatHistory("OCR-এ সমস্যা হয়েছে। আপনি ম্যানুয়ালি তথ্য দিতে পারেন। দয়া করে আবার চেষ্টা করুন বা long ফর্মে যেতে 'না' বলুন।", "bot", "left");
+          currentStep = "start"; // রি-প্রম্পট করো
+          moveToNextStep();
+          return;
         }
       }
 
@@ -219,6 +221,10 @@ async function performOcr(imageBase64) {
       })
     });
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const data = await response.json();
     return data.choices[0].message.content;
   } catch (error) {
@@ -243,7 +249,7 @@ async function extractInfoFromText(extractedText) {
         messages: [
           {
             role: 'user',
-            content: `You are an expert at parsing official documents like birth certificates or SSC marksheets. From the following extracted text, identify and extract the following fields exactly as they appear, without adding or assuming information. If a field is not found, output 'Not Found'.
+            content: `You are an expert at parsing official documents like birth certificates or SSC marksheets. From the following extracted text, identify and extract the following fields exactly as they appear, without adding or assuming information. If a field is not found, return 'Not Found' for that field. **Output only a valid JSON object, enclosed in curly braces {}, with no additional text or markdown (e.g., no ```json or other commentary).**
 
 Extracted Text:
 ${extractedText}
@@ -262,9 +268,25 @@ Output in JSON format:
       })
     });
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const data = await response.json();
-    const jsonString = data.choices[0].message.content.trim();
-    return JSON.parse(jsonString);
+    const content = data.choices[0].message.content.trim();
+
+    // JSON পার্স করার আগে চেক করো যে এটা বৈধ JSON কিনা
+    try {
+      return JSON.parse(content);
+    } catch (error) {
+      // যদি JSON পার্স ফেল করে, তাহলে টেক্সট থেকে JSON অংশ বের করার চেষ্টা করো
+      const jsonMatch = content.match(/{[\s\S]*}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('No valid JSON found in response');
+      }
+    }
   } catch (error) {
     console.error('Extraction API Error:', error);
     throw error;
