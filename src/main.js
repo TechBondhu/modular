@@ -1,5 +1,4 @@
 import { initializeApp } from './auth.js';
-import { sendMessage } from './main.js'; // Self-import
 import { elements, appState } from './constants.js';
 import { callRasaAPI, callFastAPI } from './apiCalls.js';
 import { displayMessage, hideWelcomeMessage } from './uiUtils.js';
