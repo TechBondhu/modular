@@ -2,7 +2,7 @@ import { elements } from './constants.js';
 import { loadChatHistory } from './chatHistory.js';
 import { startNewChat } from './chatHistory.js';
 import { deleteChat, renameChat } from './chatHistory.js';
-import { elements } from './constants.js'; // For modals
+ 
 
 export function toggleSidebar() {
     elements.sidebar.classList.toggle('open');
