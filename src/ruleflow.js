@@ -1,12 +1,11 @@
 // src/ruleflow.js
 import { displayMessage } from './uiUtils.js';
-import { displayReview } from './reviewUtils.js'; // saveSubmission সরানো হয়েছে
-import { saveSubmission } from './submissionUtils.js'; // submissionUtils থেকে ইমপোর্ট
+import { displayReview } from './reviewUtils.js';
+import { saveSubmission } from './submissionUtils.js';
 import { elements } from './constants.js';
 import { saveChatHistory } from './chatHistory.js';
 
-
-// সব ফ্লো এখানে ডিফাইন করা হবে
+// সব ফ্লো
 export const flows = {
   nid_apply: {
     start: {
@@ -54,108 +53,131 @@ export const flows = {
   }
 };
 
-// স্টেট ট্র্যাকিং
+// গ্লোবাল স্টেট
 let activeFlow = null;
 let currentStep = null;
 let userData = {};
 let isReviewMode = false;
 
-// ফ্লো শুরু
+// ✅ ফ্লো শুরু
 export function startFlow(flowName) {
+  console.log(`[FLOW START] Flow name: ${flowName}`);
   activeFlow = flows[flowName];
+  if (!activeFlow) {
+    console.error(`❌ Flow not found: ${flowName}`);
+    return;
+  }
   currentStep = "start";
   userData = {};
   isReviewMode = false;
-  displayMessage(activeFlow[currentStep].question, 'bot', 'left');
-}
 
-// ইউজারের উত্তর প্রসেস করা
-export function handleFormFlow(userMessage) {
-  if (!activeFlow || !currentStep) return;
-
-  const step = activeFlow[currentStep];
-
-  // ইনপুট সেভ করা
-  if (step.type === "text" || step.type === "yesno") {
-    userData[currentStep] = userMessage;
-  } else if (step.type === "file") {
-    userData[currentStep] = "[Uploaded File]"; // ফাইল আপলোডের সময় পরিবর্তন করা যাবে
+  const firstQ = activeFlow[currentStep]?.question;
+  if (!firstQ) {
+    console.error("❌ Starting question missing in flow!");
+    return;
   }
 
-  // কন্ট্রোল লজিক
+  console.log(`[QUESTION] ${firstQ}`);
+  displayMessage(firstQ, 'bot', 'left');
+}
+
+// ✅ ইউজারের উত্তর হ্যান্ডেল
+export function handleFormFlow(userMessage) {
+  if (!activeFlow || !currentStep) {
+    console.warn("⚠️ No active flow running!");
+    return;
+  }
+
+  const step = activeFlow[currentStep];
+  console.log(`\n[STEP] ${currentStep} | Type: ${step.type} | User said: ${userMessage}`);
+
+  // ইনপুট সেভ
+  if (step.type === "text" || step.type === "yesno") {
+    userData[currentStep] = userMessage;
+    console.log(`[SAVE] ${currentStep}: ${userMessage}`);
+  } else if (step.type === "file") {
+    userData[currentStep] = "[Uploaded File]";
+    console.log(`[SAVE] File uploaded placeholder`);
+  }
+
+  // ✅ কন্ট্রোল লজিক
   if (step.type === "yesno") {
     if (userMessage.includes("হ্যাঁ") || userMessage.toLowerCase().includes("yes")) {
       currentStep = step.yes;
+      console.log(`[BRANCH] YES → ${currentStep}`);
     } else {
       currentStep = step.no;
+      console.log(`[BRANCH] NO → ${currentStep}`);
     }
   } else if (step.type === "file" || step.type === "text") {
     currentStep = step.next;
+    console.log(`[NEXT] → ${currentStep}`);
   } else if (step.type === "review" && !isReviewMode) {
-    // Review মোড চালু
+    console.log("🟩 Review stage reached!");
     isReviewMode = true;
     showReviewInterface();
     return;
   }
 
-  // পরবর্তী প্রশ্ন
+  // ✅ পরবর্তী প্রশ্ন দেখাও
   const nextStep = activeFlow[currentStep];
   if (nextStep && nextStep.question && !isReviewMode) {
+    console.log(`[ASK] ${nextStep.question}`);
     displayMessage(nextStep.question, 'bot', 'left');
+  } else if (!nextStep) {
+    console.warn("⚠️ Next step not found!");
   }
 }
 
-// Review ইন্টারফেস দেখানো
+// ✅ Review ইন্টারফেস
 function showReviewInterface() {
-  if (!elements.messagesDiv) return;
+  console.log("📋 Showing Review Interface...");
+  console.log("🧾 Current User Data:", userData);
+
+  if (!elements.messagesDiv) {
+    console.error("❌ messagesDiv not found!");
+    return;
+  }
+
+  displayMessage("নিচে আপনার দেওয়া তথ্যগুলো যাচাই করুন 👇", "bot", "left");
+
+  // বেসিক রিভিউ UI
   elements.messagesDiv.innerHTML += `
     <div class="review-container" id="reviewContainer">
       <h3>আবেদন পর্যালোচনা</h3>
-      ${Object.entries(userData).map(([key, value]) => `
+      ${Object.entries(userData)
+        .map(
+          ([key, value]) => `
         <div class="review-item">
           <label>${key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}:</label>
           <input type="text" class="review-input" value="${value}" data-key="${key}">
-        </div>
-      `).join('')}
+        </div>`
+        )
+        .join('')}
       <button class="confirm-btn" id="confirmBtn">কনফার্ম</button>
       <button class="edit-btn" id="editBtn">এডিট</button>
     </div>
   `;
 
-  // Edit বাটনের ইভেন্ট
   document.getElementById('editBtn')?.addEventListener('click', () => {
-    document.querySelectorAll('.review-input').forEach(input => input.disabled = false);
+    console.log("✏️ Edit mode activated");
+    document.querySelectorAll('.review-input').forEach(input => (input.disabled = false));
     displayMessage('ডাটা এডিট করুন এবং কনফার্ম করুন।', 'bot', 'left');
   });
 
-  // Confirm বাটনের ইভেন্ট
   document.getElementById('confirmBtn')?.addEventListener('click', () => {
+    console.log("✅ Confirm button clicked");
     document.querySelectorAll('.review-input').forEach(input => {
       userData[input.getAttribute('data-key')] = input.value;
       input.disabled = true;
     });
-    generatePDF(userData); // PDF তৈরি
-    displayMessage('আবেদন কনফার্ম করা হয়েছে এবং PDF তৈরি হয়েছে!', 'bot', 'left');
-    saveSubmission(userData, 'left'); // সাবমিশন সেভ
-    isReviewMode = false; // ফ্লো শেষ
+    console.log("📤 Final Data Submitted:", userData);
+    displayMessage('আবেদন কনফার্ম করা হয়েছে ✅', 'bot', 'left');
+    saveSubmission(userData, 'left');
+    displayReview(userData, 'left');
+    isReviewMode = false;
   });
 
-  displayReview(userData, 'left'); // প্রাথমিক রিভিউ দেখানো
-}
-
-function showNidReview(formData) {
-    const reviewData = {
-        নাম: formData.name || '',
-        পিতা: formData.fatherName || '',
-        মাতা: formData.motherName || '',
-        জন্ম_তারিখ: formData.birthDate || '',
-        ঠিকানা: formData.address || '',
-        মোবাইল: formData.mobile || '',
-        ছবি: formData.photoUrl || '',
-        form_type: "NID Apply"
-    };
-
-    displayMessage("নিচে আপনার দেওয়া তথ্যগুলো রিভিউ করুন 👇", "bot", "left");
-    displayReview(reviewData, "left");
-    saveChatHistory("রিভিউ প্রদর্শন করা হয়েছে", "bot", "left");
+  // আলাদা রিভিউ কার্ডও দেখানো
+  displayReview(userData, 'left');
 }
