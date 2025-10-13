@@ -1,12 +1,15 @@
-// src/ruleflow.js
+// ✅ src/ruleflow.js
 import { displayMessage } from './uiUtils.js';
 import { displayReview } from './reviewUtils.js';
 import { saveChatHistory } from './chatHistory.js';
 
+// --------------------------------------
+// 🔹 ফ্লো ডিফাইন
+// --------------------------------------
 export const flows = {
   nid_apply: {
     start: {
-      question: "আপনার কাছে কি Birth Registration এবং SSC Marksheet আছে?",
+      question: "আপনার কাছে কি Birth Registration বা SSC Marksheet আছে?",
       type: "yesno",
       yes: "upload_docs",
       no: "nid_long_form"
@@ -22,11 +25,11 @@ export const flows = {
       next: "review"
     },
     nid_long_form: {
-      question: "দয়া করে একটি পরিচয়পত্র বা আপনার ছবি আপলোড করুন 📸",
+      question: "আপনার একটি ছবি আপলোড করুন 🪪",
       type: "file",
-      next: "nid_long_name"
+      next: "nid_name"
     },
-    nid_long_name: {
+    nid_name: {
       question: "আপনার পূর্ণ নাম লিখুন:",
       type: "text",
       next: "father_name"
@@ -37,7 +40,7 @@ export const flows = {
       next: "mother_name"
     },
     mother_name: {
-      question: "আপনার মায়ের নাম লিখুন:",
+      question: "আপনার মায়ের নাম লিখুন:",
       type: "text",
       next: "dob"
     },
@@ -55,52 +58,52 @@ export const flows = {
   }
 };
 
-// 🔹 গ্লোবাল স্টেট
+// --------------------------------------
+// 🔹 স্টেট ট্র্যাকিং
+// --------------------------------------
 let activeFlow = null;
 let currentStep = null;
 let userData = {};
 let isReviewMode = false;
 
+// --------------------------------------
 // ✅ ফ্লো শুরু
+// --------------------------------------
 export function startFlow(flowName) {
-  console.log(`[FLOW START] ${flowName}`);
+  console.log(`🟢 [FLOW START] ${flowName}`);
   activeFlow = flows[flowName];
   currentStep = "start";
   userData = {};
   isReviewMode = false;
-  displayMessage(activeFlow[currentStep].question, 'bot', 'left');
+
+  const firstQ = activeFlow[currentStep]?.question;
+  if (firstQ) displayMessage(firstQ, 'bot', 'left');
+  else console.error("❌ Flow start question not found!");
 }
 
-// ✅ ইউজারের ইনপুট হ্যান্ডল করা
+// --------------------------------------
+// ✅ ইনপুট/ইমেজ হ্যান্ডল
+// --------------------------------------
 export function handleFormFlow(userMessage, uploadedFile = null) {
   if (!activeFlow || !currentStep) return;
 
   const step = activeFlow[currentStep];
-  console.log(`[STEP] ${currentStep} (${step.type}) | msg: ${userMessage}`);
+  console.log(`➡️ [STEP] ${currentStep} (${step.type}) | msg: ${userMessage ? userMessage.slice(0, 20) + "..." : "file"}`);
 
-  // 🔹 হ্যাঁ/না, টেক্সট ইনপুট
-  if (step.type === "text" || step.type === "yesno") {
-    userData[currentStep] = userMessage;
-  }
-
-  // 🔹 ইমেজ ফাইল ইনপুট
+  // 🔹 ইমেজ ফাইল ইনপুট হ্যান্ডল করা
   if (step.type === "file" && uploadedFile) {
     console.log("📸 File received:", uploadedFile.name);
 
     const reader = new FileReader();
     reader.onload = function (e) {
       const imageUrl = e.target.result;
-      userData[currentStep] = imageUrl;
+      userData[currentStep] = imageUrl; // base64 হিসেবে সংরক্ষণ
 
       displayMessage("✅ ফাইল আপলোড সম্পন্ন হয়েছে!", "bot", "left");
+      console.log("🖼️ Image stored in userData:", imageUrl.slice(0, 40) + "...");
 
-      // ⏭️ পরবর্তী স্টেপে যাওয়া
-      currentStep = step.next;
-      console.log(`🔁 Moving to next step: ${currentStep}`);
-
-      setTimeout(() => {
-        moveToNextStep();
-      }, 300);
+      currentStep = step.next; // পরবর্তী স্টেপে যাওয়া
+      moveToNextStep(); // সঠিকভাবে পরবর্তী স্টেপ ট্রিগার
     };
 
     reader.onerror = function () {
@@ -109,59 +112,107 @@ export function handleFormFlow(userMessage, uploadedFile = null) {
     };
 
     reader.readAsDataURL(uploadedFile);
-    return; // এখানে return থাকা খুব জরুরি
+    return; // অ্যাসিনক্রোনাস প্রক্রিয়া শুরু হওয়ার পর ফাংশন থেকে বেরিয়ে যাও
   }
 
-  // 🔹 yes/no logic
+  // 🔹 টেক্সট ইনপুট বা হ্যাঁ-না ইনপুট
+  if (step.type === "text" || step.type === "yesno") {
+    userData[currentStep] = userMessage;
+  }
+
+  // 🔹 নেক্সট স্টেপ নির্ধারণ
   if (step.type === "yesno") {
     if (userMessage.includes("হ্যাঁ") || userMessage.toLowerCase().includes("yes")) {
       currentStep = step.yes;
     } else {
       currentStep = step.no;
     }
-  } else if (step.type === "text") {
+  } else if (step.type === "text" || step.type === "file") {
     currentStep = step.next;
   }
 
-  moveToNextStep();
-}
-
-// ✅ পরবর্তী স্টেপে যাওয়ার ফাংশন
-function moveToNextStep() {
-  const step = activeFlow[currentStep];
-  if (!step) return;
-
-  if (step.type === "review" && !isReviewMode) {
-    console.log("🟩 Review Phase Starting...");
+  // 🔹 রিভিউ ফেজ
+  if (currentStep === "review" && !isReviewMode) {
+    console.log("🟩 Auto Review Phase Starting...");
     isReviewMode = true;
     showNidReview(userData);
     return;
   }
 
-  if (step.question && !isReviewMode) {
-    console.log(`🟢 Next question: ${step.question}`);
-    displayMessage(step.question, 'bot', 'left');
+  // 🔹 পরবর্তী প্রশ্ন
+  moveToNextStep();
+}
+
+// --------------------------------------
+// ✅ হেল্পার — পরবর্তী প্রশ্ন
+// --------------------------------------
+function moveToNextStep() {
+  const nextStep = activeFlow[currentStep];
+  if (nextStep && nextStep.question && !isReviewMode) {
+    displayMessage(nextStep.question, "bot", "left");
+    console.log(`🟢 Next question: ${nextStep.question}`);
+
+    // যদি ফাইল ইনপুট হয় তাহলে ফাইল আপলোড UI যোগ করো
+    if (nextStep.type === "file") {
+      addFileUploadInput();
+    }
+  } else {
+    console.log("ℹ️ No further question or review started.");
   }
 }
 
-// ✅ রিভিউ সেকশন (পুরনো reviewUtils ব্যবহার)
+// --------------------------------------
+// ✅ ফাইল আপলোড ইনপুট তৈরি
+// --------------------------------------
+function addFileUploadInput() {
+  const uploadContainer = document.createElement("div");
+  uploadContainer.classList.add("file-upload-container", "slide-in");
+
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "image/*";
+  fileInput.classList.add("upload-input");
+
+  const uploadLabel = document.createElement("label");
+  uploadLabel.textContent = "📤 এখানে আপনার ছবি বা ডকুমেন্ট আপলোড করুন";
+  uploadLabel.classList.add("upload-label");
+
+  uploadContainer.appendChild(uploadLabel);
+  uploadContainer.appendChild(fileInput);
+
+  document.querySelector(".messages.left")?.appendChild(uploadContainer);
+
+  fileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      handleFormFlow("", file); // ইমেজ পাস করে পাঠানো
+      uploadContainer.remove();
+    }
+  });
+}
+
+// --------------------------------------
+// ✅ রিভিউ (তোমার reviewUtils.js সিস্টেম ব্যবহার করে)
+// --------------------------------------
 function showNidReview(formData) {
-  console.log("📋 Showing NID Review using reviewUtils.js");
-  console.log("🧾 FormData:", formData);
+  console.log("📋 Showing NID Review (from reviewUtils.js)");
+  console.log("🧾 FormData Snapshot:", JSON.stringify(formData, null, 2));
 
   const reviewData = {
-    নাম: formData.nid_long_name || '',
+    নাম: formData.nid_name || '',
     পিতা: formData.father_name || '',
     মাতা: formData.mother_name || '',
     জন্ম_তারিখ: formData.dob || '',
     ঠিকানা: formData.address || '',
     মোবাইল: formData.nid_short_form || '',
     ডকুমেন্ট: formData.upload_docs || '',
-    ছবি: formData.nid_long_form || '',
+    আবেদনকারীর_ছবি: formData.nid_long_form || '', // long form image
     form_type: "NID Apply"
   };
 
-  displayMessage("নিচে আপনার দেওয়া তথ্যগুলো যাচাই করুন 👇", "bot", "left");
+  displayMessage("নিচে আপনার দেওয়া তথ্যগুলো যাচাই করুন 👇", "bot", "left");
   displayReview(reviewData, "left");
   saveChatHistory("রিভিউ প্রদর্শন করা হয়েছে", "bot", "left");
+
+  console.log("✅ Review rendered successfully.");
 }
