@@ -1,6 +1,6 @@
 import { initializeApp } from './auth.js';
 import { elements, appState } from './constants.js';
-import { callRasaAPI, callFastAPI } from './apiCalls.js';
+import { callFastAPI } from './apiCalls.js';
 import { displayMessage, hideWelcomeMessage } from './uiUtils.js';
 import { saveChatHistory } from './chatHistory.js';
 import { openGenresModal, openGenres2Modal, closeGenresModal, closeGenres2Modal, setupWelcomeButtons } from './genresModals.js';
@@ -9,6 +9,7 @@ import { setupVideoModal } from './videoModal.js';
 import { setupResizableDivider } from './resizableDivider.js';
 import { handleFileInputChange, handlePreviewClick, handlePreviewDblClick, handleEditControl, applyEdit } from './imageUtils.js';
 import { clearPreview, openImageModal } from './imageUtils.js';
+import { handleFormFlow } from './ruleflow.js';
 
 // Send Message Function (centralized)
 async function sendMessage(side) {
@@ -17,10 +18,11 @@ async function sendMessage(side) {
     
     // ইমেজ চেক করো (editedImage অগ্রাধিকার দাও, না থাকলে selectedFile)
     let imageData = appState.editedImage; // Base64 if edited
-    if (!imageData && appState.selectedFile) {
-        // যদি edited না হয়, selectedFile থেকে Base64 তৈরি করো
+    let uploadedFile = appState.selectedFile; // ফাইল অবজেক্ট ruleflow.js-এর জন্য
+    if (!imageData && uploadedFile) {
+        // যদি edited না হয়, selectedFile থেকে Base64 তৈরি করো (UI ডিসপ্লের জন্য)
         const reader = new FileReader();
-        reader.readAsDataURL(appState.selectedFile);
+        reader.readAsDataURL(uploadedFile);
         await new Promise(resolve => {
             reader.onload = () => {
                 imageData = reader.result;
@@ -49,11 +51,14 @@ async function sendMessage(side) {
     clearPreview(side);
     hideWelcomeMessage(side);
     
-    // API কল (শুধু রাইট সাইডের জন্য টেক্সট মেসেজ থাকলে)
-    if (message && side === 'right') {
+    // বাম সাইডে ruleflow.js-এর handleFormFlow কল
+    if (side === 'left') {
+        handleFormFlow(message, uploadedFile); // টেক্সট এবং ফাইল পাঠানো
+    }
+    // ডান সাইডে FastAPI কল (শুধু টেক্সটের জন্য)
+    else if (message) {
         callFastAPI(message, side);
     }
-    // বাম সাইডে (left) কোনো API কল হবে না
 }
 
 // DOMContentLoaded
