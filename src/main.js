@@ -1,6 +1,6 @@
 import { initializeApp } from './auth.js';
 import { elements, appState } from './constants.js';
-import { callFastAPI } from './apiCalls.js'; // Rasa বাদ দিয়ে শুধু FastAPI রাখা হয়েছে
+import { callRasaAPI, callFastAPI } from './apiCalls.js';
 import { displayMessage, hideWelcomeMessage } from './uiUtils.js';
 import { saveChatHistory } from './chatHistory.js';
 import { openGenresModal, openGenres2Modal, closeGenresModal, closeGenres2Modal, setupWelcomeButtons } from './genresModals.js';
@@ -9,45 +9,65 @@ import { setupVideoModal } from './videoModal.js';
 import { setupResizableDivider } from './resizableDivider.js';
 import { handleFileInputChange, handlePreviewClick, handlePreviewDblClick, handleEditControl, applyEdit } from './imageUtils.js';
 import { clearPreview, openImageModal } from './imageUtils.js';
-import { startFlow, handleFormFlow } from './ruleflow.js'; // RuleFlow ইমপোর্ট
 
 // Send Message Function (centralized)
 async function sendMessage(side) {
     const userInput = side === 'left' ? elements.userInput : elements.userInputRight;
     const message = userInput.value.trim();
-    if (!message) return;
-    displayMessage(message, 'user', side);
-    saveChatHistory(message, 'user', side);
+    
+    // ইমেজ চেক করো (editedImage অগ্রাধিকার দাও, না থাকলে selectedFile)
+    let imageData = appState.editedImage; // Base64 if edited
+    if (!imageData && appState.selectedFile) {
+        // যদি edited না হয়, selectedFile থেকে Base64 তৈরি করো
+        const reader = new FileReader();
+        reader.readAsDataURL(appState.selectedFile);
+        await new Promise(resolve => {
+            reader.onload = () => {
+                imageData = reader.result;
+                resolve();
+            };
+        });
+    }
+    
+    // যদি মেসেজ বা ইমেজ না থাকে, তাহলে ফেরত যাও
+    if (!message && !imageData) return;
+    
+    // ইউজার মেসেজ ডিসপ্লে (টেক্সট)
+    if (message) {
+        displayMessage(message, 'user', side);
+        saveChatHistory(message, 'user', side);
+    }
+    
+    // ইমেজ ডিসপ্লে এবং সেভ
+    if (imageData) {
+        displayMessage(imageData, 'user', side); // displayMessage ইমেজ হ্যান্ডেল করবে
+        saveChatHistory(imageData, 'user', side); // ইমেজ হিস্ট্রিতে সেভ
+    }
+    
+    // ইনপুট এবং প্রিভিউ ক্লিয়ার
     userInput.value = '';
+    clearPreview(side);
     hideWelcomeMessage(side);
-
-    if (side === 'left') {
-        // Rasa-এর পরিবর্তে RuleFlow
-        if (message.includes("এনআইডি") || message.includes("nid")) {
-            startFlow("nid_apply");
+    
+    // API কল (শুধু টেক্সটের জন্য, ইমেজ এখনো পাঠানো হবে না)
+    if (message) {
+        if (side === 'left') {
+            callRasaAPI(message, {}, side);
         } else {
-            handleFormFlow(message);
+            callFastAPI(message, side);
         }
-    } else {
-        callFastAPI(message, side);
     }
 }
 
 // DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Check for critical DOM elements with specific error messages
-    const missingElements = [];
-    if (!elements.messagesDiv) missingElements.push('messagesDiv');
-    if (!elements.historyList) missingElements.push('historyList');
-    if (!elements.messagesRight) missingElements.push('messagesRight');
-    if (missingElements.length > 0) {
-        console.error(`Critical DOM elements not found: ${missingElements.join(', ')}. Please check your HTML.`);
+    if (!elements.messagesDiv || !elements.historyList || !elements.messagesRight) {
+        console.error('Critical DOM elements not found. Please check your HTML.');
         return;
     }
-
     initializeApp();
     elements.historyIcon?.addEventListener('click', toggleSidebar);
-    elements.closeSidebar?.addEventListener('click', () => toggleSidebar());
+    elements.closeSidebar?.addEventListener('click', () => toggleSidebar()); // Close toggle
 
     // Send buttons and inputs
     elements.sendBtn?.addEventListener('click', () => sendMessage('left'));
