@@ -101,6 +101,7 @@ export function handleFormFlow(userMessage, uploadedFile = null) {
 
   if (!activeFlow || !currentStep) {
     displayMessage("দুঃখিত, ফ্লো শুরু করুন বা সঠিক মেসেজ পাঠান।", 'bot', 'left');
+    saveChatHistory("দুঃখিত, ফ্লো শুরু করুন বা সঠিক মেসেজ পাঠান।", 'bot', 'left');
     return;
   }
 
@@ -125,6 +126,8 @@ export function handleFormFlow(userMessage, uploadedFile = null) {
         try {
           // প্রথমে OCR করে টেক্সট বের করো
           const extractedText = await performOcr(imageUrl);
+          console.log("📝 Extracted Text:", extractedText);
+
           // তারপর টেক্সট থেকে তথ্য এক্সট্র্যাক্ট
           const extractedData = await extractInfoFromText(extractedText);
 
@@ -249,7 +252,7 @@ async function extractInfoFromText(extractedText) {
         messages: [
           {
             role: 'user',
-            content: `You are an expert at parsing official documents like birth certificates or SSC marksheets. From the following extracted text, identify and extract the following fields exactly as they appear, without adding or assuming information. If a field is not found, return 'Not Found' for that field. **Output only a valid JSON object, enclosed in curly braces {}, with no additional text or markdown (e.g., no ```json or other commentary).**
+            content: `You are an expert at parsing official documents like birth certificates or SSC marksheets. From the following extracted text, identify and extract the following fields exactly as they appear, without adding or assuming information. If a field is not found, return 'Not Found' for that field. **Output only a valid JSON object, enclosed in curly braces {}, with no additional text, markdown, or code fences (e.g., no ```json or other commentary).**
 
 Extracted Text:
 ${extractedText}
@@ -274,17 +277,27 @@ Output in JSON format:
 
     const data = await response.json();
     const content = data.choices[0].message.content.trim();
+    console.log('Raw API Response:', content); // ডিবাগিংয়ের জন্য
 
     // JSON পার্স করার আগে চেক করো যে এটা বৈধ JSON কিনা
     try {
       return JSON.parse(content);
     } catch (error) {
-      // যদি JSON পার্স ফেল করে, তাহলে টেক্সট থেকে JSON অংশ বের করার চেষ্টা করো
-      const jsonMatch = content.match(/{[\s\S]*}/);
+      // যদি JSON পার্স ফেল করে, টেক্সট থেকে JSON অংশ বের করার চেষ্টা করো
+      const jsonMatch = content.match(/{[\s\S]*?}/); // আরও সুনির্দিষ্ট রেগেক্স
       if (jsonMatch) {
+        console.log('Extracted JSON:', jsonMatch[0]);
         return JSON.parse(jsonMatch[0]);
       } else {
-        throw new Error('No valid JSON found in response');
+        // ফলব্যাক: ডিফল্ট ডাটা রিটার্ন
+        console.warn('No valid JSON found, returning default data');
+        return {
+          name: 'Not Found',
+          fathers_name: 'Not Found',
+          mothers_name: 'Not Found',
+          dob: 'Not Found',
+          address: 'Not Found'
+        };
       }
     }
   } catch (error) {
