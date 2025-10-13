@@ -1,7 +1,8 @@
 // src/ruleflow.js
 import { displayMessage } from './uiUtils.js';
-import { displayReview, saveSubmission } from './reviewUtils.js'; // saveSubmission যোগ করা হয়েছে
-import { elements } from './constants.js'; // DOM elements-এর জন্য
+import { displayReview } from './reviewUtils.js'; // saveSubmission সরানো হয়েছে
+import { saveSubmission } from './submissionUtils.js'; // submissionUtils থেকে ইমপোর্ট
+import { elements } from './constants.js';
 
 // সব ফ্লো এখানে ডিফাইন করা হবে
 export const flows = {
