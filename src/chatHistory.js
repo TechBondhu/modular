@@ -1,6 +1,6 @@
 import { initializeFirebase } from './firebaseConfig.js';
 import { appState, elements } from './constants.js';
-import { showErrorMessage, displayMessage } from './uiUtils.js';
+import { showErrorMessage, displayMessage, sanitizeMessage } from './uiUtils.js';
 import { displayReview } from './reviewUtils.js';
 import { showWelcomeMessage, hideWelcomeMessage } from './uiUtils.js';
 
