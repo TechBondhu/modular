@@ -9,9 +9,7 @@ import { setupSidebarModals, toggleSidebar } from './sidebar.js';
 import { setupVideoModal } from './videoModal.js';
 import { setupResizableDivider } from './resizableDivider.js';
 import { handleFileInputChange, handlePreviewClick, handlePreviewDblClick, handleEditControl, applyEdit } from './imageUtils.js';
-import { closeGenresModal, closeGenres2Modal } from './genresModals.js'; // For modal closes
 import { clearPreview, openImageModal } from './imageUtils.js';
-import { elements } from './constants.js'; // For modals
 
 // Send Message Function (centralized)
 async function sendMessage(side) {
