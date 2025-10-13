@@ -1,6 +1,6 @@
 import { initializeApp } from './auth.js';
 import { elements, appState } from './constants.js';
-import { callRasaAPI, callFastAPI } from './apiCalls.js';
+import { callFastAPI } from './apiCalls.js'; // Rasa বাদ দিয়ে শুধু FastAPI রাখা হয়েছে
 import { displayMessage, hideWelcomeMessage } from './uiUtils.js';
 import { saveChatHistory } from './chatHistory.js';
 import { openGenresModal, openGenres2Modal, closeGenresModal, closeGenres2Modal, setupWelcomeButtons } from './genresModals.js';
@@ -9,6 +9,7 @@ import { setupVideoModal } from './videoModal.js';
 import { setupResizableDivider } from './resizableDivider.js';
 import { handleFileInputChange, handlePreviewClick, handlePreviewDblClick, handleEditControl, applyEdit } from './imageUtils.js';
 import { clearPreview, openImageModal } from './imageUtils.js';
+import { startFlow, handleFormFlow } from './ruleflow.js'; // RuleFlow ইমপোর্ট
 
 // Send Message Function (centralized)
 async function sendMessage(side) {
@@ -19,8 +20,14 @@ async function sendMessage(side) {
     saveChatHistory(message, 'user', side);
     userInput.value = '';
     hideWelcomeMessage(side);
+
     if (side === 'left') {
-        callRasaAPI(message, {}, side);
+        // Rasa-এর পরিবর্তে RuleFlow
+        if (message.includes("এনআইডি") || message.includes("nid")) {
+            startFlow("nid_apply");
+        } else {
+            handleFormFlow(message);
+        }
     } else {
         callFastAPI(message, side);
     }
@@ -28,13 +35,19 @@ async function sendMessage(side) {
 
 // DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
-    if (!elements.messagesDiv || !elements.historyList || !elements.messagesRight) {
-        console.error('Critical DOM elements not found. Please check your HTML.');
+    // Check for critical DOM elements with specific error messages
+    const missingElements = [];
+    if (!elements.messagesDiv) missingElements.push('messagesDiv');
+    if (!elements.historyList) missingElements.push('historyList');
+    if (!elements.messagesRight) missingElements.push('messagesRight');
+    if (missingElements.length > 0) {
+        console.error(`Critical DOM elements not found: ${missingElements.join(', ')}. Please check your HTML.`);
         return;
     }
+
     initializeApp();
     elements.historyIcon?.addEventListener('click', toggleSidebar);
-    elements.closeSidebar?.addEventListener('click', () => toggleSidebar()); // Close toggle
+    elements.closeSidebar?.addEventListener('click', () => toggleSidebar());
 
     // Send buttons and inputs
     elements.sendBtn?.addEventListener('click', () => sendMessage('left'));
