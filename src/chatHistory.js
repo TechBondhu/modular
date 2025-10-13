@@ -1,7 +1,8 @@
 import { initializeFirebase } from './firebaseConfig.js';
 import { appState, elements } from './constants.js';
 import { showErrorMessage, displayMessage } from './uiUtils.js';
-import { loadChatMessages } from './chatHistory.js'; // Self-import for recursion
+import { displayReview } from './reviewUtils.js';
+import { showWelcomeMessage, hideWelcomeMessage } from './uiUtils.js';
 
 let currentChatId = null; // Local for rename/delete
 
