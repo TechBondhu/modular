@@ -1,8 +1,8 @@
 import { genres, genres2, elements } from './constants.js';
 import { displayMessage, hideWelcomeMessage, sanitizeMessage, showErrorMessage } from './uiUtils.js';
 import { saveChatHistory } from './chatHistory.js';
-import { callRasaAPI } from './apiCalls.js';
-import { callFastAPI } from './apiCalls.js';
+import { callFastAPI } from './apiCalls.js'; // Rasa বাদ দিয়ে শুধু FastAPI রাখা হয়েছে
+import { startFlow, handleFormFlow } from './ruleflow.js'; // RuleFlow ইমপোর্ট
 
 export function renderGenres() {
     if (!elements.genresList) return;
@@ -20,7 +20,11 @@ export function renderGenres() {
             if (genre.message) {
                 displayMessage(sanitizeMessage(genre.message), 'user', 'left');
                 saveChatHistory(sanitizeMessage(genre.message), 'user', 'left');
-                callRasaAPI(genre.message, {}, 'left');
+                if (genre.message.includes("এনআইডি") || genre.message.includes("nid")) {
+                    startFlow("nid_apply"); // Rasa-এর জায়গায় RuleFlow শুরু
+                } else {
+                    handleFormFlow(genre.message); // অন্য ক্ষেত্রে RuleFlow হ্যান্ডল
+                }
                 hideWelcomeMessage('left');
             } else {
                 showErrorMessage('এই সেবা উপলব্ধ নয়।', 'left');
@@ -126,7 +130,13 @@ export function setupWelcomeButtons() {
                 const side = button.closest('#welcomeMessage') ? 'left' : 'right';
                 displayMessage(sanitizeMessage(genre.message), 'user', side);
                 saveChatHistory(genre.message, 'user', side);
-                callRasaAPI(genre.message, {}, side);
+                if (side === 'left' && (genre.message.includes("এনআইডি") || genre.message.includes("nid"))) {
+                    startFlow("nid_apply"); // Left side-এ Rasa-এর জায়গায় RuleFlow
+                } else if (side === 'left') {
+                    handleFormFlow(genre.message);
+                } else {
+                    callFastAPI(genre.message, side); // Right side-এ FastAPI অপরিবর্তিত
+                }
                 hideWelcomeMessage(side);
             } else {
                 showErrorMessage('এই সেবা উপলব্ধ নয়।', button.closest('#welcomeMessage') ? 'left' : 'right');
