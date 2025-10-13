@@ -1,8 +1,11 @@
-// src/ruleflow.js
+// ✅ src/ruleflow.js
 import { displayMessage } from './uiUtils.js';
 import { displayReview } from './reviewUtils.js';
 import { saveChatHistory } from './chatHistory.js';
 
+// --------------------------------------
+// 🔹 সব রুল-বেইজড ফ্লো ডিফাইন করা
+// --------------------------------------
 export const flows = {
   nid_apply: {
     start: {
@@ -50,37 +53,46 @@ export const flows = {
   }
 };
 
-// স্টেট ট্র্যাকিং
+// --------------------------------------
+// 🔹 স্টেট ট্র্যাকিং
+// --------------------------------------
 let activeFlow = null;
 let currentStep = null;
 let userData = {};
 let isReviewMode = false;
 
+// --------------------------------------
 // ✅ ফ্লো শুরু
+// --------------------------------------
 export function startFlow(flowName) {
-  console.log(`[FLOW START] ${flowName}`);
+  console.log(`🟢 [FLOW START] ${flowName}`);
   activeFlow = flows[flowName];
   currentStep = "start";
   userData = {};
   isReviewMode = false;
-  displayMessage(activeFlow[currentStep].question, 'bot', 'left');
+
+  const firstQ = activeFlow[currentStep]?.question;
+  if (firstQ) displayMessage(firstQ, 'bot', 'left');
+  else console.error("❌ Flow start question not found!");
 }
 
+// --------------------------------------
 // ✅ ইউজারের ইনপুট হ্যান্ডল করা
+// --------------------------------------
 export function handleFormFlow(userMessage) {
   if (!activeFlow || !currentStep) return;
 
   const step = activeFlow[currentStep];
-  console.log(`[STEP] ${currentStep} (${step.type}) | msg: ${userMessage}`);
+  console.log(`➡️ [STEP] ${currentStep} (${step.type}) | msg: ${userMessage}`);
 
-  // ডেটা সংরক্ষণ
+  // 🔸 ডেটা সংরক্ষণ
   if (step.type === "text" || step.type === "yesno") {
     userData[currentStep] = userMessage;
   } else if (step.type === "file") {
     userData[currentStep] = "[Uploaded File]";
   }
 
-  // নেক্সট স্টেপ লজিক
+  // 🔸 নেক্সট স্টেপ নির্ধারণ
   if (step.type === "yesno") {
     if (userMessage.includes("হ্যাঁ") || userMessage.toLowerCase().includes("yes")) {
       currentStep = step.yes;
@@ -89,25 +101,33 @@ export function handleFormFlow(userMessage) {
     }
   } else if (step.type === "file" || step.type === "text") {
     currentStep = step.next;
-  } else if (step.type === "review" && !isReviewMode) {
-    console.log("🟩 Review Phase Starting...");
-    isReviewMode = true;
-    showNidReview(userData); // <-- এখানেই তোমার পুরনো reviewUtils সিস্টেম কল হচ্ছে
-    return;
   }
 
-  // পরবর্তী প্রশ্ন দেখানো
+  // 🔸 যদি পরবর্তী স্টেপ review হয় → অটোমেটিক রিভিউ চালু করো
+  if (currentStep === "review" && !isReviewMode) {
+    console.log("🟩 Auto Review Phase Starting...");
+    isReviewMode = true;
+    showNidReview(userData);
+    return; // ⚡ আর পরবর্তী প্রশ্ন না দেখানো
+  }
+
+  // 🔸 পরবর্তী প্রশ্ন দেখানো (যদি থাকে)
   const nextStep = activeFlow[currentStep];
   if (nextStep && nextStep.question && !isReviewMode) {
     displayMessage(nextStep.question, 'bot', 'left');
+  } else {
+    console.log("ℹ️ No further question found or review started.");
   }
 }
 
-// ✅ তোমার পুরনো reviewUtils সিস্টেম ব্যবহার করে রিভিউ দেখানো
+// --------------------------------------
+// ✅ পুরনো reviewUtils.js সিস্টেম ব্যবহার করে রিভিউ দেখানো
+// --------------------------------------
 function showNidReview(formData) {
-  console.log("📋 Showing NID Review using reviewUtils.js");
-  console.log("🧾 FormData:", formData);
+  console.log("📋 Showing NID Review (from reviewUtils.js)");
+  console.log("🧾 FormData Snapshot:", JSON.stringify(formData, null, 2));
 
+  // 🔹 ফর্ম ডেটা সাজানো
   const reviewData = {
     নাম: formData.nid_long_form || '',
     পিতা: formData.father_name || '',
@@ -119,7 +139,10 @@ function showNidReview(formData) {
     form_type: "NID Apply"
   };
 
+  // 🔹 UI তে মেসেজ ও রিভিউ প্রদর্শন
   displayMessage("নিচে আপনার দেওয়া তথ্যগুলো যাচাই করুন 👇", "bot", "left");
   displayReview(reviewData, "left");
   saveChatHistory("রিভিউ প্রদর্শন করা হয়েছে", "bot", "left");
+
+  console.log("✅ Review rendered successfully using existing UI system.");
 }
