@@ -1,6 +1,5 @@
 import { elements, appState, image } from './constants.js';
 import { showErrorMessage } from './uiUtils.js';
-import { openImageModal } from './imageUtils.js'; // Self-import
 import { callRasaAPI } from './apiCalls.js';
 
 export function clearPreview(side) {
