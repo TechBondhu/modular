@@ -73,7 +73,7 @@ export function displayReview(reviewData, side) {
             buttonContainer.innerHTML = '';
             const downloadBtn = document.createElement('button');
             downloadBtn.classList.add('download-btn', 'ripple-btn');
-            downloadBtn.textContent = 'Download PDF';
+            downloadBtn.textContent = 'পিডিএফ ডাউনলোড করুন';
             downloadBtn.addEventListener('click', () => {
                 const pdfUrl = reviewCard.getAttribute('data-pdf-url');
                 if (pdfUrl) {
