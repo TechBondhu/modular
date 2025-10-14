@@ -36,10 +36,10 @@ export function displayReview(reviewData, side) {
     buttonContainer.classList.add('review-buttons');
     const editBtn = document.createElement('button');
     editBtn.classList.add('edit-btn', 'ripple-btn');
-    editBtn.textContent = 'এডিট করুন';
+    editBtn.textContent = 'Edit';
     const confirmBtn = document.createElement('button');
     confirmBtn.classList.add('confirm-btn', 'ripple-btn');
-    confirmBtn.textContent = 'নিশ্চিত করুন';
+    confirmBtn.textContent = 'Confirm';
     let isProcessing = false;
     editBtn.addEventListener('click', () => toggleEdit(reviewCard, editBtn, reviewContent, confirmBtn, reviewData, side));
     confirmBtn.addEventListener('click', async () => {
