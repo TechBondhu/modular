@@ -1,0 +1,19 @@
+/* নতুন সাব-হেডার */
+.sub-header {
+    background: #3B82F6;
+    color: #fff;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 700;
+    border-bottom: 1px solid #1E3A8A;
+}
+.sub-header-left, .sub-header-right {
+    flex: 1;
+    text-align: center;
+}
+.sub-header-left {
+    border-right: 1px solid #fff;
+}

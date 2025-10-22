@@ -1,0 +1,24 @@
+/* Professional Resizable Main Divider (Smooth Animation) */
+.divider {
+    width: 2px; /* টানা সহজ */
+    background: #1E3A8A;
+    height: 100%;
+    position: absolute;
+    left: 50%; /* Initial center */
+    top: 0;
+    z-index: 10;
+    cursor: col-resize;
+    transition: background 0.3s ease, left 0.1s ease; /* Normal transition */
+    user-select: none;
+    will-change: left; /* Optimize for smooth movement */
+}
+
+.divider:hover {
+    background: #3B82F6;
+}
+
+.divider.dragging {
+    background: #3B82F6 !important;
+    transition: none !important; /* No transition during drag for instant response */
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); /* Visual feedback during drag */
+}

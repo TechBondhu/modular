@@ -1,0 +1,92 @@
+/* Video Modal Styles */
+.video-icon {
+       font-size: 24px;
+       color: #fff;
+       cursor: pointer;
+       transition: color 0.3s ease, transform 0.2s ease;
+   }
+   .video-icon:hover {
+       color: #3B82F6;
+       transform: scale(1.1);
+   }
+   .video-modal {
+       display: none;
+       position: fixed;
+       top: 0;
+       left: 0;
+       width: 100%;
+       height: 100%;
+       background: rgba(0, 0, 0, 0.5);
+       justify-content: center;
+       align-items: center;
+       z-index: 1000;
+   }
+   .video-modal-content {
+       background: rgba(255, 255, 255, 0.95);
+       border-radius: 15px;
+       padding: 25px;
+       width: 90%;
+       max-width: 800px;
+       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+       text-align: center;
+       animation: slideInModal 0.3s ease-out;
+       font-family: 'Tiro Bangla', serif;
+       font-weight: 700;
+   }
+   .video-modal-content video {
+       width: 100%;
+       border-radius: 10px;
+       margin-bottom: 20px;
+   }
+   .video-modal-buttons {
+       display: flex;
+       justify-content: center;
+   }
+   .video-modal-buttons .close-video {
+       padding: 10px 25px;
+       border: none;
+       border-radius: 10px;
+       background: #6B7280;
+       color: #fff;
+       font-size: 14px;
+       font-family: 'Tiro Bangla', serif;
+       font-weight: 700;
+       cursor: pointer;
+       transition: transform 0.2s ease, background 0.3s ease;
+   }
+   .video-modal-buttons .close-video:hover {
+       background: #4B5563;
+       transform: translateY(-2px);
+   }
+   @keyframes slideInModal {
+       from { transform: translateY(50px); opacity: 0; }
+       to { transform: translateY(0); opacity: 1; }
+   }
+   @media (max-width: 768px) {
+       .video-icon {
+           font-size: 20px;
+       }
+       .video-modal-content {
+           width: 80%;
+           max-width: 600px;
+           padding: 20px;
+       }
+       .video-modal-buttons .close-video {
+           padding: 8px 20px;
+           font-size: 12px;
+       }
+   }
+   @media (max-width: 480px) {
+       .video-icon {
+           font-size: 18px;
+       }
+       .video-modal-content {
+           width: 90%;
+           max-width: 400px;
+           padding: 15px;
+       }
+       .video-modal-buttons .close-video {
+           padding: 6px 15px;
+           font-size: 10px;
+       }
+   }

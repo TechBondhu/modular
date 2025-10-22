@@ -1,0 +1,16 @@
+/* প্রিভিউ কনটেইনার স্টাইল (ইমেজ প্রিভিউ দেখানোর জন্য) */
+#previewContainer, #previewContainer-right {
+    margin: 10px 0;
+    padding: 10px;
+    background: #f3f4f6;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+    max-height: 200px;
+    overflow: hidden;
+}
+
+#previewImage, #previewImage-right {
+    max-height: 180px;
+    object-fit: contain;
+}

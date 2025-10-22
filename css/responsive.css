@@ -1,0 +1,88 @@
+/* রেসপনসিভ ডিজাইন */
+@media (max-width: 768px) {
+    .input-area {
+        padding: 10px;
+    }
+    .input-wrapper {
+        width: 90%;
+        padding: 8px 12px;
+    }
+    #userInput, #userInput-right {
+        font-size: 14px;
+        min-height: 50px;
+        max-height: 100px;
+    }
+    #sendBtn, #sendBtn-right, #uploadBtn, #uploadBtn-right {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+    #uploadBtn i, #uploadBtn-right i {
+        font-size: 14px;
+    }
+    #sendBtn-right {
+        background: #1E3A8A !important; /* মোবাইলেও নীল কালার নিশ্চিত */
+    }
+    #sendBtn-right:hover {
+        background: #3B82F6 !important;
+        transform: scale(1.1) !important;
+    }
+    .preview-container, #previewContainer, #previewContainer-right {
+        max-width: 50px;
+    }
+}
+
+@media (max-width: 480px) {
+    .input-area {
+        padding: 8px;
+    }
+    .input-wrapper {
+        width: 95%;
+        padding: 6px 10px;
+    }
+    #userInput, #userInput-right {
+        font-size: 12px;
+        min-height: 40px;
+        max-height: 80px;
+    }
+    #sendBtn, #sendBtn-right, #uploadBtn, #uploadBtn-right {
+        width: 25px;
+        height: 25px;
+        font-size: 12px;
+    }
+    #uploadBtn i, #uploadBtn-right i {
+        font-size: 12px;
+    }
+    #sendBtn-right {
+        background: #1E3A8A !important; /* মোবাইলেও নীল কালার নিশ্চিত */
+    }
+    #sendBtn-right:hover {
+        background: #3B82F6 !important;
+        transform: scale(1.1) !important;
+    }
+    .preview-container, #previewContainer, #previewContainer-right {
+        max-width: 40px;
+    }
+}
+ 
+.preview-image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.edit-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    background: #3B82F6;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+.edit-btn:hover {
+    background: #2563EB;
+}

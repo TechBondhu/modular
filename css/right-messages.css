@@ -1,0 +1,220 @@
+/* Ensure messages in right chat (#messages-right) follow the same styling */
+#messages-right .user-message,
+#messages-right .bot-message {
+    padding: 15px 20px;  /* ফিক্স: 150px থেকে 15px করা */
+    border-radius: 12px;
+    max-width: 60%;
+    word-wrap: break-word;
+    font-size: 18px;
+    margin: 15px 10px; /* Increased margin for better spacing */
+    font-family: 'Tiro Bangla', serif;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+#messages-right .user-message {
+    background: #f7f7f7;
+    color: #000000;
+    text-align: right;
+    margin-left: auto;
+    margin-right: 50px; /* Push to far right */
+}
+
+#messages-right .bot-message {
+    background: #fff;
+    color: #111827;
+    text-align: left;
+    margin-right: auto;
+    margin-left: 15px; /* Push to far left */
+    animation: fadeIn 0.3s ease-out;
+    text-shadow: none;
+    box-shadow: none;
+    border: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes slideIn {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+.slide-out {
+    animation: slideOut 0.3s ease-in;
+}
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(20px); opacity: 0; }
+}
+.review-card {
+    background: #fff;
+    border-radius: 0;
+    padding: 20px;
+    max-width: 60%;
+    margin: 10px;
+    box-shadow: none;
+    animation: slideIn 0.3s ease-out;
+}
+.review-card h3 {
+    font-size: 20px;
+    color: #1E3A8A;
+    margin-bottom: 15px;
+    font-family: 'Tiro Bangla', serif;
+    font-weight: 700;
+}
+.review-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.review-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    position: relative;
+}
+.review-item label {
+    font-size: 16px;
+    color: #333;
+    font-weight: 700;
+}
+.review-item p {
+    font-size: 16px;
+    color: #555;
+    margin: 0;
+}
+.review-item img {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    margin-top: 5px;
+}
+.replace-image-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 18px;
+    color: #3B82F6;
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+.replace-image-icon:hover {
+    color: #2563EB;
+    transform: scale(1.2);
+}
+.replace-image-input {
+    display: none;
+}
+.review-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+    gap: 10px;
+}
+.edit-btn, .confirm-btn, .download-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    font-size: 14px;
+    font-family: 'Tiro Bangla', serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+.edit-btn {
+    background: linear-gradient(135deg, #3B82F6, #1E40AF);
+    color: #fff;
+}
+.edit-btn:hover {
+    background: linear-gradient(135deg, #2563EB, #1E3A8A);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+.edit-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+}
+.edit-btn:hover::before {
+    width: 200px;
+    height: 200px;
+}
+.confirm-btn {
+    background: linear-gradient(135deg, #10B981, #047857);
+    color: #fff;
+}
+.confirm-btn:hover {
+    background: linear-gradient(135deg, #059669, #065F46);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+.confirm-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+}
+.confirm-btn:hover::before {
+    width: 200px;
+    height: 200px;
+}
+.download-btn {
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+    color: #fff;
+}
+.download-btn:hover {
+    background: linear-gradient(135deg, #D97706, #B45309);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+.download-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+}
+.download-btn:hover::before {
+    width: 200px;
+    height: 200px;
+}
+.edit-input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    width: 70%;
+    margin-left: 5px;
+}
+.image-preview {
+    max-width: 200px;
+    height: auto;
+    border-radius: 10px;
+    margin-top: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}

@@ -1,0 +1,21 @@
+/* Container and columns for smooth resize */
+.split-chat {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: calc(100% - 60px);
+    overflow: hidden;
+}
+
+.left-column, .right-column {
+    flex: 1;
+    min-width: 200px;
+    max-width: 80%;
+    transition: flex 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Easing for natural feel */
+    will-change: flex; /* Optimize for smooth flex changes */
+    position: relative;
+}
+
+.left-column.dragging ~ .divider,
+.right-column.dragging ~ .divider {

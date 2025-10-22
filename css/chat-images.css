@@ -1,0 +1,16 @@
+/* চ্যাটে ইমেজ স্টাইল (চ্যাট মেসেজে ইমেজ রেন্ডারের জন্য) */
+.chat-messages img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 5px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: block;
+}
+
+
+.preview-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
